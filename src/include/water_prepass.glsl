@@ -1,3 +1,4 @@
+
 #include "lib/bgfx_uniforms.glsl"
 
 ///////////////////////////////////////////////////////////
@@ -136,6 +137,13 @@ void main() {
 
     waterNormal = tbn * waterNormal;
 
+    // Restore the distance-based water normal blend from Mirai 2.1.
+    waterNormal = mix(
+        fNormal,
+        waterNormal,
+        saturate(exp(-length(v_worldPos.xz) * 0.01))
+    );
+
     uvec2 packedLight = packLight(swLightColor(v_lightColor, v_lightmapUV.r));
 
     fragData0 = uvec4(0u, packedLight, pack2x8(vec2(1.0, v_lightmapUV.y)));
@@ -150,3 +158,5 @@ void main() {
 }
 #endif //DO_WATER_SURFACE_BUFFER_PASS
 #endif //SHADER_STAGE__FRAGMENT
+
+    
