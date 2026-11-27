@@ -14,13 +14,15 @@
 #define WAVE_WEIGHT_STEP 0.8
 #define WAVE_WARP_STEP 0.9
 
+#define WATER_NORMAL_SAMPLE 0.05
+
 vec2 wavedx(vec2 pos, vec2 dir, float speed, float freq, float time) {
     float x = dot(dir, pos) * freq - time * speed;
     float wave = exp(sin(x) - 1.0);
     return vec2(wave, -wave * cos(x));
 }
 
-float waveField(vec2 pos, float time, float weightStep, bool warp) {
+float waveField(vec2 pos, float time, float weightStep, float warpStrength) {
     float freq = WAVE_FREQ_BASE;
     float speed = WAVE_SPEED_BASE;
     float angle = 0.0;
@@ -34,7 +36,8 @@ float waveField(vec2 pos, float time, float weightStep, bool warp) {
     for (int i = 0; i < WAVE_OCTAVES; ++i) {
         vec2 dir = vec2(sin(angle), cos(angle));
         vec2 res = wavedx(pos, dir, speed, freq, time);
-        if (warp) pos += dir * res.y * weight;
+
+        pos += dir * res.y * weight * warpStrength;
 
         w += res.x * weight;
         ws += weight;
@@ -48,18 +51,22 @@ float waveField(vec2 pos, float time, float weightStep, bool warp) {
 }
 
 float waves1(vec2 pos, float time) {
-    return clamp(waveField(pos, time, WAVE_WEIGHT_STEP, false), 0.0, 1.0);
+    return waveField(pos, time, WAVE_WEIGHT_STEP, 0.1);
 }
 
 float waves2(vec2 pos, float time) {
-    return smoothstep(0.2, 1.0, waveField(pos, time, WAVE_WARP_STEP, true));
+    return smoothstep(0.2, 1.0, waveField(pos, time, WAVE_WARP_STEP, 1.0));
 }
 
 vec3 calcWaterNormal(vec2 pos, float time, float d) {
-    float h = waves1(pos, time);
-    float hx = waves1(pos + vec2(d, 0.0), time);
-    float hy = waves1(pos + vec2(0.0, d), time);
-    return normalize(vec3(h - hx, h - hy, 1.0));
+    float e = WATER_NORMAL_SAMPLE;
+
+    float hL = waves1(pos - vec2(e, 0.0), time);
+    float hR = waves1(pos + vec2(e, 0.0), time);
+    float hD = waves1(pos - vec2(0.0, e), time);
+    float hU = waves1(pos + vec2(0.0, e), time);
+
+    return normalize(vec3(hL - hR, hD - hU, 1.0));
 }
 
 // projected height map, sampled along the refracted light direction
