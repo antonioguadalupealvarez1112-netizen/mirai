@@ -1,0 +1,35 @@
+
+name: Mirai Android Build
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Build Mirai for Android
+        run: python build.py android -f
+
+      - name: Upload compiled materials
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirai-android-materials
+          path: output-android/
+          if-no-files-found: error
+          
