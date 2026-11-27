@@ -141,7 +141,7 @@ void main() {
     waterNormal = mix(
         fNormal,
         waterNormal,
-        saturate(exp(-length(v_worldPos.xz) * 0.01))
+        exp(-length(v_worldPos.xz) * 0.01)
     );
 
     uvec2 packedLight = packLight(swLightColor(v_lightColor, v_lightmapUV.r));
@@ -158,5 +158,3 @@ void main() {
 }
 #endif //DO_WATER_SURFACE_BUFFER_PASS
 #endif //SHADER_STAGE__FRAGMENT
-
-    
