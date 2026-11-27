@@ -1,5 +1,4 @@
 
-
 name: Mirai Android Build
 
 on:
@@ -38,8 +37,25 @@ jobs:
       - name: Build Mirai for Android
         run: python build.py android
 
+      - name: Prepare Minecraft pack
+        run: |
+          mkdir -p staging/materials
+          cp -r pack/. staging/
+          cp -r output-android/. staging/materials/
+
+      - name: Create MCpack
+        run: |
+          cd staging
+          zip -r ../mirai-android.mcpack .
+
+      - name: Upload MCpack
+        uses: actions/upload-artifact@v4
+        with:
+          name: mirai-android-mcpack
+          path: mirai-android.mcpack
+          if-no-files-found: error
+
       - name: Upload compiled materials
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: mirai-android-materials
